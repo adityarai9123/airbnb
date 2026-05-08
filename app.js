@@ -1,12 +1,18 @@
+require("dotenv").config();
+
 // Core Module
 const path = require('path');
 
 // External Module
 const express = require('express');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
+const DB_PATH = process.env.MONGO_URL;
 
 //Local Module
 const storeRouter = require("./routes/storeRouter")
 const hostRouter = require("./routes/hostRouter")
+const authRouter = require("./routes/authRouter")
 const rootDir = require("./utils/pathUtil");
 const errorsController = require("./controllers/errors");
 const { default: mongoose } = require('mongoose');
@@ -16,8 +22,33 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+const store = new MongoDBStore({
+  uri: DB_PATH,
+  collection: 'sessions'
+});
+
 app.use(express.urlencoded());
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    store
+  }));
+
+app.use((req, res, next) => {
+  req.isLoggedIn = req.session.isLoggedIn
+  next();
+})
+
+app.use(authRouter)
 app.use(storeRouter);
+app.use("/host", (req, res, next) => {
+  if (req.isLoggedIn) {
+    next();
+  } else {
+    res.redirect("/login");
+  }
+});
 app.use("/host", hostRouter);
 
 app.use(express.static(path.join(rootDir, 'public')))
@@ -25,7 +56,6 @@ app.use(express.static(path.join(rootDir, 'public')))
 app.use(errorsController.get404);
 
 const PORT = 3000;
-const DB_PATH = 'mongodb://Ad:aditya9123006@ac-pbrr3vc-shard-00-00.vzee3qt.mongodb.net:27017,ac-pbrr3vc-shard-00-01.vzee3qt.mongodb.net:27017,ac-pbrr3vc-shard-00-02.vzee3qt.mongodb.net:27017/airbnb?ssl=true&replicaSet=atlas-xcj3sr-shard-0&authSource=admin&appName=Cluster0';
 
 mongoose.connect(DB_PATH).then(() => {
   console.log('Connected to Mongo');
