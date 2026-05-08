@@ -5,13 +5,17 @@ const hostRouter=express.Router();
 const rootDir=require("../utils/pathUtil");
 
 hostRouter.get("/add-home",(req,res,next)=>{
-  res.sendFile(path.join(rootDir , 'views' , 'addHome.html'));
+  res.render('addHome',{pageTitle:'Add Home to airbnb'});
 });
+
+const registeredHomes=[];
 
 hostRouter.post("/add-home",(req,res,next)=>{
-  console.log(req.body);
-  res.sendFile(path.join(rootDir , 'views' , 'HomeAdded.html'));
+  console.log("Home Registration Successful for : ",req.body , req.body.houseName);
+  registeredHomes.push({houseName:req.body.houseName});
+  res.render('HomeAdded',{pageTitle: 'Home Added Suucessfully'});
 });
 
 
-module.exports=hostRouter;
+exports.hostRouter=hostRouter;
+exports.registeredHomes=registeredHomes;
