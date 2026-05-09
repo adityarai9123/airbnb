@@ -17,7 +17,6 @@ const hostRouter = require("./routes/hostRouter")
 const authRouter = require("./routes/authRouter")
 const rootDir = require("./utils/pathUtil");
 const errorsController = require("./controllers/errors");
-const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -35,7 +34,11 @@ const randomString = (length) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    if (file.fieldname === 'rules') {
+      cb(null, "rules/");
+    } else {
+      cb(null, "uploads/");
+    }
   },
   filename: (req, file, cb) => {
     cb(null, randomString(10) + '-' + file.originalname);
@@ -43,7 +46,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
     cb(null, false);
@@ -55,7 +58,7 @@ const multerOptions = {
 };
 
 app.use(express.urlencoded({ extended: false }));
-app.use(multer(multerOptions).single('photo'));
+app.use(multer(multerOptions).fields([{name: 'photo', maxCount: 1}, {name: 'rules', maxCount: 1}]));
 app.use(express.static(path.join(rootDir, 'public')));
 app.use("/uploads", express.static(path.join(rootDir, 'uploads')))
 app.use("/host/uploads", express.static(path.join(rootDir, 'uploads')))

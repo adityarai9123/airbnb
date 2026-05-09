@@ -1,3 +1,5 @@
+const path = require("path");
+const rootDir = require("../utils/pathUtil");
 const Home = require("../models/home");
 const User = require("../models/user");
 
@@ -86,3 +88,25 @@ exports.getHomeDetails = (req, res, next) => {
     }
   });
 };
+
+exports.getHouseRules = [
+  (req, res, next) => {
+    if (!req.session.isLoggedIn) {
+      return res.redirect("/login");
+    }
+    next();
+  },
+  (req, res, next) => {
+    const homeId = req.params.homeId;
+    Home.findById(homeId).then((home) => {
+      if (!home || !home.rules) {
+        return res.status(404).send("Rules not found");
+      }
+      const filePath = path.join(rootDir, 'rules', home.rules);
+      res.download(filePath, 'House Rules.pdf');
+    }).catch(err => {
+      console.log("Error fetching rules: ", err);
+      res.status(500).send("Error fetching rules");
+    });
+  }
+];

@@ -47,14 +47,13 @@ exports.getHostHomes = (req, res, next) => {
 
 exports.postAddHome = (req, res, next) => {
   const { houseName, price, location, rating, description } = req.body;
-  console.log(houseName, price, location, rating, description);
-  console.log(req.file);
 
-  if (!req.file) {
+  if (!req.files || !req.files.photo) {
     return res.status(422).send("No image provided");
   }
 
-  const photo = '/' + req.file.path.replace(/\\/g, '/');
+  const photo = '/uploads/' + req.files.photo[0].filename;
+  const rules = req.files.rules ? req.files.rules[0].filename : null;
 
   const home = new Home({
     houseName,
@@ -62,6 +61,7 @@ exports.postAddHome = (req, res, next) => {
     location,
     rating,
     photo,
+    rules,
     description,
   });
   home.save().then(() => {
@@ -80,13 +80,21 @@ exports.postEditHome = (req, res, next) => {
     home.location = location;
     home.rating = rating;
     home.description = description;
-    if (req.file) {
-        fs.unlink(home.photo, (err) => {
-          if (err) {
-            console.log("Error while deleting file ", err);
-          }
-        });
-        home.photo = '/' + req.file.path.replace(/\\/g, '/');
+    if (req.files && req.files.photo) {
+        if (home.photo && home.photo.startsWith('/uploads/')) {
+          fs.unlink('uploads/' + home.photo.split('/uploads/')[1], (err) => {
+            if (err) console.log("Error while deleting old photo ", err);
+          });
+        }
+        home.photo = '/uploads/' + req.files.photo[0].filename;
+      }
+    if (req.files && req.files.rules) {
+        if (home.rules) {
+          fs.unlink('rules/' + home.rules, (err) => {
+            if (err) console.log("Error while deleting old rules ", err);
+          });
+        }
+        home.rules = req.files.rules[0].filename;
       }
     home.save().then((result) => {
       console.log("Home updated ", result);
