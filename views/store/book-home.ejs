@@ -1,0 +1,181 @@
+<%- include('../partials/head') %>
+  </head>
+  <body>
+    <%- include('../partials/nav') %>
+    <main class="container mx-auto bg-white shadow-lg rounded-lg p-6 md:p-10 mt-8 mb-16 max-w-5xl">
+      <% const hostDisplay = home.host
+        ? `${home.host.firstName} ${home.host.lastName || ''}`.trim()
+        : 'Your host'; %>
+      <% if (bookingError) { %>
+        <div class="mb-6 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3">
+          <%= bookingError %>
+        </div>
+      <% } %>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div>
+          <div class="rounded-xl overflow-hidden shadow-md mb-6">
+            <img src="<%= home.photo %>" alt="<%= home.houseName %>" class="w-full h-72 object-cover" />
+          </div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= home.houseName %></h1>
+          <p class="text-gray-600 mb-4 flex items-center gap-2">
+            <span class="text-red-500">📍</span> <%= home.location %>
+          </p>
+
+          <div class="rounded-xl border border-gray-200 p-5 mb-6 bg-gray-50">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">About this stay</h2>
+            <ul class="space-y-3 text-gray-700">
+              <li class="flex gap-2">
+                <span class="text-red-500 font-medium">Host</span>
+                <span><%= hostDisplay %></span>
+              </li>
+              <li class="flex gap-2">
+                <span class="text-red-500 font-medium">Guests</span>
+                <span>Up to <%= maxGuests %> guests · <%= maxGuests >= 4 ? 'Spacious layout with room to spread out' : 'Cozy layout ideal for smaller groups' %></span>
+              </li>
+              <li class="flex gap-2">
+                <span class="text-red-500 font-medium">Comfort</span>
+                <span>Designed for staying cool — cross breezes, shaded outdoor space, and a relaxed indoor climate.</span>
+              </li>
+              <li class="flex gap-2 items-center">
+                <span class="text-red-500 font-medium">Rating</span>
+                <span class="flex items-center gap-1"><span class="text-yellow-500">★</span> <%= home.rating %> / 5</span>
+              </li>
+            </ul>
+            <% if (home.description) { %>
+              <p class="mt-4 text-sm text-gray-600 border-t border-gray-200 pt-4"><%= home.description %></p>
+            <% } %>
+          </div>
+
+          <% if (similarHomes && similarHomes.length) { %>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800 mb-3">Similar stays</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <% similarHomes.forEach((h) => { %>
+                  <a href="/book/<%= h._id %>" class="block rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition">
+                    <img src="<%= h.photo %>" alt="" class="w-full h-28 object-cover" />
+                    <div class="p-2">
+                      <p class="text-sm font-medium text-gray-900 truncate"><%= h.houseName %></p>
+                      <p class="text-xs text-red-600 font-semibold">Rs<%= h.price %> / night</p>
+                    </div>
+                  </a>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
+        <div>
+          <div class="sticky top-24 rounded-xl border-2 border-red-100 shadow-lg p-6 bg-white">
+            <h2 class="text-xl font-bold text-red-600 mb-6">Your trip</h2>
+            <form action="/book/<%= home._id %>" method="POST" class="space-y-5" id="booking-form">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
+                <input type="date" name="checkIn" id="checkIn" min="<%= minCheckIn %>"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 focus:outline-none" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+                <input type="date" name="checkOut" id="checkOut" min="<%= minCheckIn %>"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 focus:outline-none" required />
+              </div>
+
+              <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Price per night</span>
+                  <span class="font-medium">Rs<span id="lbl-night"><%= home.price %></span></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Nights</span>
+                  <span class="font-medium" id="lbl-nights">—</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Subtotal</span>
+                  <span class="font-medium">Rs<span id="lbl-sub">0</span></span>
+                </div>
+                <% if (discountPercent > 0) { %>
+                  <div class="flex justify-between text-green-700">
+                    <span>Discount (<%= discountPercent %>%)</span>
+                    <span>− Rs<span id="lbl-discount">0</span></span>
+                  </div>
+                <% } else { %>
+                  <p class="text-xs text-gray-500">No promotional discount on this listing.</p>
+                <% } %>
+                <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
+                  <span>Total</span>
+                  <span>Rs<span id="lbl-total">0</span></span>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition">
+                Confirm booking
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        var price = Number(<%= JSON.stringify(Number(home.price)) %>);
+        var discount = Number(<%= JSON.stringify(discountPercent) %>);
+        var checkIn = document.getElementById('checkIn');
+        var checkOut = document.getElementById('checkOut');
+        var lblNights = document.getElementById('lbl-nights');
+        var lblSub = document.getElementById('lbl-sub');
+        var lblDiscount = document.getElementById('lbl-discount');
+        var lblTotal = document.getElementById('lbl-total');
+
+        function dayAfter(iso) {
+          if (!iso) return '';
+          var d = new Date(iso + 'T12:00:00');
+          d.setDate(d.getDate() + 1);
+          return d.toISOString().slice(0, 10);
+        }
+
+        function updateCheckoutMin() {
+          if (checkIn.value) {
+            checkOut.min = dayAfter(checkIn.value);
+            if (checkOut.value && checkOut.value <= checkIn.value) {
+              checkOut.value = checkOut.min;
+            }
+          }
+        }
+
+        function recalc() {
+          if (!checkIn.value || !checkOut.value) {
+            lblNights.textContent = '—';
+            lblSub.textContent = '0';
+            if (lblDiscount) lblDiscount.textContent = '0';
+            lblTotal.textContent = '0';
+            return;
+          }
+          var start = new Date(checkIn.value + 'T12:00:00');
+          var end = new Date(checkOut.value + 'T12:00:00');
+          var nights = Math.round((end - start) / (1000 * 60 * 60 * 24));
+          if (nights < 1 || !isFinite(nights)) {
+            lblNights.textContent = '—';
+            lblSub.textContent = '0';
+            if (lblDiscount) lblDiscount.textContent = '0';
+            lblTotal.textContent = '0';
+            return;
+          }
+          var sub = nights * price;
+          var save = discount > 0 ? Math.round((sub * discount) / 100) : 0;
+          var total = Math.round(sub - save);
+          lblNights.textContent = String(nights);
+          lblSub.textContent = String(sub);
+          if (lblDiscount) lblDiscount.textContent = String(save);
+          lblTotal.textContent = String(total);
+        }
+
+        checkIn.addEventListener('change', function () {
+          updateCheckoutMin();
+          recalc();
+        });
+        checkOut.addEventListener('change', recalc);
+        updateCheckoutMin();
+      })();
+    </script>
+  </body>
+</html>

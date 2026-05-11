@@ -45,7 +45,10 @@
                     </a>
                   </div>
                   <% } %>
-                  <div class="mt-2">
+                  <div class="mt-4 flex flex-wrap gap-3 items-center">
+                    <% if (isLoggedIn && user && user.userType === 'guest') { %>
+                      <a href="/book/<%= home._id %>" class="inline-block bg-green-500 hover:bg-green-600 text-white font-medium px-5 py-2 rounded-lg transition">Book this home</a>
+                    <% } %>
                     <%- include('../partials/favourite') %>
                   </div>
               </div>

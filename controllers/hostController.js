@@ -17,11 +17,9 @@ exports.getEditHome = (req, res, next) => {
 
   Home.findById(homeId).then((home) => {
     if (!home) {
-      console.log("Home not found for editing.");
       return res.redirect("/host/host-home-list");
     }
 
-    console.log(homeId, editing, home);
     res.render("host/edit-home", {
       home: home,
       pageTitle: "Edit your Home",
@@ -46,7 +44,7 @@ exports.getHostHomes = (req, res, next) => {
 };
 
 exports.postAddHome = (req, res, next) => {
-  const { houseName, price, location, rating, description } = req.body;
+  const { houseName, price, location, rating, description, maxGuests, discountPercent } = req.body;
 
   if (!req.files || !req.files.photo) {
     return res.status(422).send("No image provided");
@@ -54,6 +52,8 @@ exports.postAddHome = (req, res, next) => {
 
   const photo = '/uploads/' + req.files.photo[0].filename;
   const rules = req.files.rules ? req.files.rules[0].filename : null;
+  const parsedGuests = parseInt(maxGuests, 10);
+  const parsedDiscount = parseInt(discountPercent, 10);
 
   const home = new Home({
     houseName,
@@ -63,16 +63,20 @@ exports.postAddHome = (req, res, next) => {
     photo,
     rules,
     description,
+    host: req.session.user._id,
+    maxGuests: Number.isFinite(parsedGuests) && parsedGuests > 0 ? parsedGuests : 4,
+    discountPercent:
+      Number.isFinite(parsedDiscount) && parsedDiscount >= 0
+        ? Math.min(100, parsedDiscount)
+        : 0,
   });
-  home.save().then(() => {
-    console.log("Home Saved successfully");
-  });
+  home.save();
 
   res.redirect("/host/host-home-list");
 };
 
 exports.postEditHome = (req, res, next) => {
-  const { id, houseName, price, location, rating, description } =
+  const { id, houseName, price, location, rating, description, maxGuests, discountPercent } =
     req.body;
   Home.findById(id).then((home) => {
     home.houseName = houseName;
@@ -80,10 +84,21 @@ exports.postEditHome = (req, res, next) => {
     home.location = location;
     home.rating = rating;
     home.description = description;
+    const parsedGuests = parseInt(maxGuests, 10);
+    const parsedDiscount = parseInt(discountPercent, 10);
+    if (Number.isFinite(parsedGuests) && parsedGuests > 0) {
+      home.maxGuests = parsedGuests;
+    }
+    if (Number.isFinite(parsedDiscount) && parsedDiscount >= 0) {
+      home.discountPercent = Math.min(100, parsedDiscount);
+    }
+    if (!home.host) {
+      home.host = req.session.user._id;
+    }
     if (req.files && req.files.photo) {
         if (home.photo && home.photo.startsWith('/uploads/')) {
           fs.unlink('uploads/' + home.photo.split('/uploads/')[1], (err) => {
-            if (err) console.log("Error while deleting old photo ", err);
+            // File deletion error handled silently
           });
         }
         home.photo = '/uploads/' + req.files.photo[0].filename;
@@ -91,30 +106,25 @@ exports.postEditHome = (req, res, next) => {
     if (req.files && req.files.rules) {
         if (home.rules) {
           fs.unlink('rules/' + home.rules, (err) => {
-            if (err) console.log("Error while deleting old rules ", err);
+            // File deletion error handled silently
           });
         }
         home.rules = req.files.rules[0].filename;
       }
-    home.save().then((result) => {
-      console.log("Home updated ", result);
-    }).catch(err => {
-      console.log("Error while updating ", err);
-    })
+    home.save();
     res.redirect("/host/host-home-list");
   }).catch(err => {
-    console.log("Error while finding home ", err);
+    res.redirect("/host/host-home-list");
   });
 };
 
 exports.postDeleteHome = (req, res, next) => {
   const homeId = req.params.homeId;
-  console.log("Came to delete ", homeId);
   Home.findByIdAndDelete(homeId)
     .then(() => {
       res.redirect("/host/host-home-list");
     })
     .catch((error) => {
-      console.log("Error while deleting ", error);
+      res.redirect("/host/host-home-list");
     });
 };

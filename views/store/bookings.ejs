@@ -2,9 +2,53 @@
   </head>
   <body>
     <%- include('../partials/nav') %>
-    <main class="container mx-auto mt-20 text-center">
-      <h2 class="text-6xl font-bold text-red-500 mb-4">My Bookings</h2>
-      <p class="text-2xl text-gray-700 mb-8">Bookings will appear here</p>
+    <main class="container mx-auto mt-10 mb-16 px-4 max-w-4xl">
+      <h2 class="text-4xl font-bold text-red-500 mb-2 text-center">My Bookings</h2>
+      <p class="text-center text-gray-600 mb-10">Stays you have reserved as a guest</p>
+
+      <% if (!bookings || bookings.length === 0) { %>
+        <div class="text-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-16">
+          <p class="text-xl text-gray-700 mb-4">No bookings yet</p>
+          <a href="/homes" class="inline-block bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition">Browse homes</a>
+        </div>
+      <% } else { %>
+        <ul class="space-y-6">
+          <% bookings.forEach((b) => { %>
+            <li class="rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-white flex flex-col sm:flex-row">
+              <% if (b.home && b.home.photo) { %>
+                <img src="<%= b.home.photo %>" alt="" class="w-full sm:w-48 h-48 sm:h-auto object-cover" />
+              <% } %>
+              <div class="p-6 flex-1">
+                <h3 class="text-xl font-semibold text-gray-900 mb-1">
+                  <%= b.home ? b.home.houseName : 'Listing removed' %>
+                </h3>
+                <% if (b.home) { %>
+                  <p class="text-sm text-gray-600 mb-4"><%= b.home.location %></p>
+                <% } %>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-700 mb-3">
+                  <div>
+                    <span class="text-gray-500">Check-in</span>
+                    <p class="font-medium"><%= b.checkIn.toLocaleDateString() %></p>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Check-out</span>
+                    <p class="font-medium"><%= b.checkOut.toLocaleDateString() %></p>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Nights</span>
+                    <p class="font-medium"><%= b.nights %></p>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Discount applied</span>
+                    <p class="font-medium"><%= b.discountPercent %>%</p>
+                  </div>
+                </div>
+                <p class="text-lg font-bold text-red-600">Total paid: Rs<%= b.totalPrice %></p>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
     </main>
   </body>
 </html>

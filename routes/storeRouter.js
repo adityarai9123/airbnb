@@ -7,8 +7,23 @@ const storeController = require("../controllers/storeController");
 
 storeRouter.get("/", storeController.getIndex);
 storeRouter.get("/homes", storeController.getHomes);
-storeRouter.get("/bookings", storeController.getBookings);
+storeRouter.get(
+  "/bookings",
+  storeController.guestOnly,
+  storeController.getBookings
+);
 storeRouter.get("/favourites", storeController.getFavouriteList);
+
+storeRouter.get(
+  "/book/:homeId",
+  storeController.guestOnly,
+  storeController.getBookingPage
+);
+storeRouter.post(
+  "/book/:homeId",
+  storeController.guestOnly,
+  storeController.postBooking
+);
 
 storeRouter.get("/homes/:homeId", storeController.getHomeDetails);
 storeRouter.get("/rules/:homeId", storeController.getHouseRules);

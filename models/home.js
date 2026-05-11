@@ -20,13 +20,21 @@ const homeSchema = mongoose.Schema({
   photo: String,
   rules: String,
   description: String,
+  host: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  maxGuests: {
+    type: Number,
+    default: 4,
+    min: 1,
+  },
+  discountPercent: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
 });
-
-// homeSchema.pre('findOneAndDelete', async function(next) {
-//   console.log('Came to pre hook while deleting a home');
-//   const homeId = this.getQuery()._id;
-//   await favourite.deleteMany({houseId: homeId});
-//   next();
-// });
 
 module.exports = mongoose.model('Home', homeSchema);

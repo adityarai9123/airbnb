@@ -41,6 +41,21 @@
           name="rules"
           accept="application/pdf"
           class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="number"
+          name="maxGuests"
+          min="1"
+          value="<%= editing && home.maxGuests != null ? home.maxGuests : '4'%>"
+          placeholder="Max guests"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="number"
+          name="discountPercent"
+          min="0"
+          max="100"
+          value="<%= editing && home.discountPercent != null ? home.discountPercent : '0'%>"
+          placeholder="Discount % (0–100)"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
         <textarea
           name="description"
           placeholder="Describe your home"
