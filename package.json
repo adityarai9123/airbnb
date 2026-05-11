@@ -7,9 +7,11 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "tailwind": "tailwindcss -i ./views/input.css -o ./public/output.css --watch",
-    "start": "concurrently \"nodemon app.js\" \"npm run tailwind\""
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "concurrently \"nodemon app.js\" \"npm run tailwind\"",
+  "tailwind": "tailwindcss -i ./views/input.css -o ./public/output.css --watch",
+  "build": "tailwindcss -i ./views/input.css -o ./public/output.css",
+  "start": "node app.js"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",

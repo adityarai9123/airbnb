@@ -92,13 +92,16 @@ app.use("/host", hostRouter);
 
 app.use(errorsController.pageNotFound);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-mongoose.connect(DB_PATH).then(() => {
-  console.log('Connected to Mongo');
-  app.listen(PORT, () => {
-    console.log(`Server running on address http://localhost:${PORT}`);
+mongoose.connect(DB_PATH)
+  .then(() => {
+    console.log("Connected to Mongo");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("Error while connecting to Mongo:", err);
   });
-}).catch(err => {
-  console.log('Error while connecting to Mongo: ', err);
-});
